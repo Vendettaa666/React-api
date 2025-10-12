@@ -43,7 +43,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-8 flex justify-between items-center">
         <div className="logo">
           <h1 className="text-2xl md:text-3xl font-bold text-white">
-           AURALUNE
+           My Music
           </h1>
         </div>
 
