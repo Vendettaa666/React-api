@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 const SongCard = ({ 
   track, 
-  isFavorite = false, 
+  isFavorite = true, 
   onToggleFavorite, 
   isPlaying = false,
   onPlay 
@@ -82,16 +82,10 @@ const SongCard = ({
         <div className="flex justify-between items-center">
           <button
             onClick={handleFavoriteClick}
-            className={`p-3 rounded-xl transition-all transform hover:scale-110 ${
-              isFavorite 
-                ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-500/30' 
-                : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'
-            }`}
+            className="p-3 rounded-xl transition-all transform hover:scale-110 bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-500/30"
+            title="Remove from favorites"
           >
-            <Heart 
-              size={18} 
-              fill={isFavorite ? 'currentColor' : 'none'} 
-            />
+            <Heart size={18} fill="currentColor" />
           </button>
           
           <a
@@ -99,6 +93,7 @@ const SongCard = ({
             target="_blank"
             rel="noopener noreferrer"
             className="p-3 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 hover:text-white transform hover:scale-110 transition-all"
+            title="Open in Spotify"
           >
             <ExternalLink size={18} />
           </a>

@@ -1,20 +1,20 @@
 // Your Personal Music Collection
-// Edit this array to add your favorite songs!
-export const MY_FAVORITE_TRACKS = [
-  // ADD YOUR FAVORITE SONGS HERE
-  // Format: { id: 'SPOTIFY_TRACK_ID', name: 'Song Title - Artist Name' }
+// Just add Spotify Track IDs here - the app will fetch all details from Spotify!
+export const MY_FAVORITE_TRACK_IDS = [
+  // ADD YOUR FAVORITE SONG IDs HERE
+  // Format: 'SPOTIFY_TRACK_ID'
   
   // Example songs (uncomment and modify as needed):
-  // { id: '4cOdK2wGLETKBW3PvgPWqT', name: 'Blinding Lights - The Weeknd' },
-  // { id: '0VjIjW4GlUZAMYd2vXMi3b', name: 'As It Was - Harry Styles' },
-  // { id: '7xGfFoTpQ2E7fRF5lN10tr', name: 'Flowers - Miley Cyrus' },
-  { id: '7HKRWMTErKh56EIBeFcmdf', name: 'Sial - Mahalini' },
-  { id: '5QQlmUR2fIfrstMT0TMC97', name: 'Jiwa Yang Bersedih - Ghea Indrawari' },
+  // '4cOdK2wGLETKBW3PvgPWqT', // Blinding Lights - The Weeknd
+  // '0VjIjW4GlUZAMYd2vXMi3b', // As It Was - Harry Styles
+  // '7xGfFoTpQ2E7fRF5lN10tr', // Flowers - Miley Cyrus
+  '7HKRWMTErKh56EIBeFcmdf', // Sial - Mahalini
+  '5QQlmUR2fIfrstMT0TMC97', // Jiwa Yang Bersedih - Ghea Indrawari
   
   // Your songs go here:
 ];
 
 // Simple function to get your favorite track IDs
 export const getDefaultFavoriteIds = () => {
-  return MY_FAVORITE_TRACKS.map(track => track.id);
+  return MY_FAVORITE_TRACK_IDS;
 };

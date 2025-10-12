@@ -46,21 +46,16 @@ function App() {
     }
   };
 
-  const forceReloadFavorites = () => {
-    setHasLoadedDefaults(false);
-  };
-
-
   const handleToggleFavorite = (track) => {
     const isCurrentlyFavorite = favorites.some(fav => fav.id === track.id);
     if (isCurrentlyFavorite) {
+      // Remove from favorites
       setFavorites(prev => prev.filter(fav => fav.id !== track.id));
       if (currentTrack?.id === track.id) {
         stopTrack();
       }
-    } else {
-      setFavorites(prev => [...prev, track]);
     }
+    // Note: We don't add to favorites here since all displayed songs are already favorites
   };
 
   const handlePlayTrack = (track) => {
@@ -194,15 +189,6 @@ function App() {
              <p className="text-slate-300">Total: {favorites.length} songs</p>
            </div>
 
-           {/* Reload Button */}
-           <div className="mb-6 text-center">
-             <button
-               onClick={forceReloadFavorites}
-               className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-500/30"
-             >
-               🔄 Reload My Favorites
-             </button>
-           </div>
 
           {/* Error Message */}
           {error && (
@@ -221,7 +207,6 @@ function App() {
                    <SongCard
                      key={track.id}
                      track={track}
-                     isFavorite={true}
                      onToggleFavorite={handleToggleFavorite}
                      isPlaying={currentTrack?.id === track.id && isPlaying}
                      onPlay={handlePlayTrack}
@@ -241,10 +226,10 @@ function App() {
                    <h3 className="text-blue-300 font-semibold mb-2">📝 How to add your songs:</h3>
                    <ol className="text-sm text-blue-200 space-y-1 text-left">
                      <li>1. Open <code className="bg-slate-700 px-2 py-1 rounded">src/utils/favoriteTracks.js</code></li>
-                     <li>2. Find <code className="bg-slate-700 px-2 py-1 rounded">MY_FAVORITES</code> array</li>
-                     <li>3. Add your songs in this format:</li>
-                     <li className="ml-4"><code className="bg-slate-700 px-2 py-1 rounded">{"{ id: 'SPOTIFY_ID', name: 'Song - Artist' }"}</code></li>
-                     <li>4. Save and click "Reload My Favorites" button above</li>
+                     <li>2. Find <code className="bg-slate-700 px-2 py-1 rounded">MY_FAVORITE_TRACK_IDS</code> array</li>
+                     <li>3. Add your song IDs in this format:</li>
+                     <li className="ml-4"><code className="bg-slate-700 px-2 py-1 rounded">'SPOTIFY_TRACK_ID', // Song - Artist</code></li>
+                     
                    </ol>
                  </div>
                </div>
