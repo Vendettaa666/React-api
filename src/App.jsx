@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getMultipleTracks } from './services/spotifyApi';
+import { getMultipleTracks } from './services/spotifyAPI';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import SongCard from './components/SongCard';
