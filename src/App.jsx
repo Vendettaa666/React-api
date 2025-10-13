@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getMultipleTracks } from './services/spotifyAPI';
+import { getMultipleTracks } from './services/spotifyApi';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import SongCard from './components/SongCard';
@@ -139,6 +139,10 @@ function App() {
             <i className="ri-arrow-down-s-line ri-2x"></i>
           </button>
         </div>
+      </section>
+
+      <section id="artis-section">
+
       </section>
 
       {/* Music Section - All music-related content moved here */}
