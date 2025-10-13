@@ -1,18 +1,27 @@
 import { useState, useEffect } from "react";
-import { getMultipleTracks } from './services/spotifyApi';
+import { getMultipleTracks, getArtist, getAlbum, getMultipleArtists } from './services/spotifyApi';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
-import SongCard from './components/SongCard';
+import { getAllArtists, getArtistsByGenre, getArtistAlbums, getAlbumTracks } from './utils/favoriteTracks';
+import ArtistCard from './components/ArtistCard';
+import AlbumCard from './components/AlbumCard';
+import TrackModal from './components/TrackModal';
 import LoadingSpinner from './components/LoadingSpinner';
-import { getDefaultFavoriteIds } from './utils/favoriteTracks';
-
-const DEFAULT_FAVORITE_IDS = getDefaultFavoriteIds(); 
 
 function App() {
   const [favorites, setFavorites] = useLocalStorage('spotify-favorites', []);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [hasLoadedDefaults, setHasLoadedDefaults] = useState(false);
+  
+  // State untuk navigasi
+  const [currentView, setCurrentView] = useState('artists');
+  const [selectedArtist, setSelectedArtist] = useState(null);
+  const [selectedAlbum, setSelectedAlbum] = useState(null);
+  const [modalTracks, setModalTracks] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // State untuk data yang difetch dari Spotify
+  const [artistsWithData, setArtistsWithData] = useState({});
 
   const {
     currentTrack,
@@ -23,24 +32,92 @@ function App() {
     stopTrack
   } = useAudioPlayer();
 
-  // Load default favorites on first render
+  // Fetch all artist data from Spotify on component mount
   useEffect(() => {
-    if (!hasLoadedDefaults) {
-      loadDefaultFavorites();
-      setHasLoadedDefaults(true);
-    }
-  }, [hasLoadedDefaults]);
+    const fetchArtistsData = async () => {
+      setIsLoading(true);
+      try {
+        const allArtists = getAllArtists();
+        const artistIds = Object.values(allArtists).map(artist => artist.id);
+        
+        // Fetch all artists data from Spotify
+        const spotifyArtists = await getMultipleArtists(artistIds);
+        
+        // Combine our local data with Spotify data
+        const combinedArtistsData = {};
+        
+        Object.entries(allArtists).forEach(([artistName, localData], index) => {
+          const spotifyData = spotifyArtists[index];
+          combinedArtistsData[artistName] = {
+            ...localData,
+            spotifyData: spotifyData
+          };
+        });
 
-  const loadDefaultFavorites = async () => {
+        setArtistsWithData(combinedArtistsData);
+      } catch (err) {
+        console.error('Error fetching artists data:', err);
+        setError('Failed to load artists data');
+        // Fallback to local data
+        setArtistsWithData(getAllArtists());
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchArtistsData();
+  }, []);
+
+  const getArtistsByGenreWithData = (genre) => {
+    return Object.entries(artistsWithData)
+      .filter(([_, data]) => data.genre === genre)
+      .reduce((acc, [name, data]) => {
+        acc[name] = data;
+        return acc;
+      }, {});
+  };
+
+  const handleSelectArtist = (artistName, artistData) => {
+    setSelectedArtist({ name: artistName, data: artistData });
+    setCurrentView('albums');
+  };
+
+  const handleBackToArtists = () => {
+    setCurrentView('artists');
+    setSelectedArtist(null);
+  };
+
+  const handleSelectAlbum = async (artistName, albumName, albumData) => {
     setIsLoading(true);
-    setError(null);
     try {
-      const tracks = await getMultipleTracks(DEFAULT_FAVORITE_IDS);
+      // Fetch album data from Spotify if not already available
+      let albumWithData = albumData;
+      if (!albumData.spotifyData) {
+        try {
+          const spotifyAlbum = await getAlbum(albumData.id);
+          albumWithData = {
+            ...albumData,
+            spotifyData: spotifyAlbum
+          };
+        } catch (error) {
+          console.error('Error fetching album data:', error);
+        }
+      }
+
+      const trackIds = albumData.tracks;
+      const tracks = await getMultipleTracks(trackIds);
       const validTracks = tracks.filter(track => track !== null);
-      setFavorites(validTracks);
+      
+      setModalTracks(validTracks);
+      setSelectedAlbum({ 
+        name: albumName, 
+        artist: artistName, 
+        data: albumWithData 
+      });
+      setIsModalOpen(true);
     } catch (err) {
-      setError('Failed to load favorite tracks: ' + err.message);
-      console.error('Error loading favorites:', err);
+      setError('Failed to load tracks: ' + err.message);
+      console.error('Error loading tracks:', err);
     } finally {
       setIsLoading(false);
     }
@@ -49,13 +126,13 @@ function App() {
   const handleToggleFavorite = (track) => {
     const isCurrentlyFavorite = favorites.some(fav => fav.id === track.id);
     if (isCurrentlyFavorite) {
-      // Remove from favorites
       setFavorites(prev => prev.filter(fav => fav.id !== track.id));
       if (currentTrack?.id === track.id) {
         stopTrack();
       }
+    } else {
+      setFavorites(prev => [...prev, track]);
     }
-    // Note: We don't add to favorites here since all displayed songs are already favorites
   };
 
   const handlePlayTrack = (track) => {
@@ -66,12 +143,91 @@ function App() {
     playTrack(track);
   };
 
+  // Close the track modal and clear selected album/tracks
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedAlbum(null);
+    setModalTracks([]);
+  };
+
+  const renderArtistsSection = (artists, genre, title) => (
+    <section id={`${genre}-section`} className="py-16 px-4 bg-slate-900/80 backdrop-blur-sm">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
+          <p className="text-slate-300">Explore your favorite {title.toLowerCase()}</p>
+        </div>
+
+        {Object.keys(artists).length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Object.entries(artists).map(([artistName, artistData]) => (
+              <ArtistCard
+                key={artistName}
+                artistName={artistName}
+                artistData={artistData}
+                onSelectArtist={handleSelectArtist}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-slate-400 py-8">
+            No artists found for this genre.
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  const renderAlbumsView = () => {
+    if (!selectedArtist) return null;
+
+    const albums = getArtistAlbums(selectedArtist.name);
+
+    return (
+      <section className="py-16 px-4 bg-slate-900/80 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <button
+              onClick={handleBackToArtists}
+              className="mb-4 px-4 py-2 text-purple-400 hover:text-purple-300 transition-colors flex items-center justify-center gap-2 mx-auto"
+            >
+              <i className="ri-arrow-left-line"></i>
+              Back to Artists
+            </button>
+            <h2 className="text-3xl font-bold text-white mb-2">{selectedArtist.name}</h2>
+            <p className="text-slate-300">Albums Collection</p>
+          </div>
+
+          {/* Albums Grid */}
+          {Object.keys(albums).length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Object.entries(albums).map(([albumName, albumData]) => (
+                <AlbumCard
+                  key={albumName}
+                  albumName={albumName}
+                  albumData={albumData}
+                  artistName={selectedArtist.name}
+                  onSelectAlbum={handleSelectAlbum}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-slate-400 py-8">
+              No albums found for this artist.
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  };
+
   return (
     <>
       {/* Hidden Audio Element */}
       <audio ref={audioRef} />
 
-      {/* Hero Section - Only Welcome & Social */}
+      {/* Hero Section */}
       <section
         id="hero"
         className="hero min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
@@ -98,7 +254,7 @@ function App() {
               </span>
             </div>
 
-            <h1 className="mb-8 text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-400">
+            <h1 className="mb-8 text-3xl sm:text-4xl md:text-5xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-400">
               WELCOME TO <br />
               <span className="block">My Music Dimension</span>
             </h1>
@@ -133,7 +289,7 @@ function App() {
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
           <button 
-            onClick={() => document.getElementById('music-section')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => document.getElementById('metal-section')?.scrollIntoView({ behavior: 'smooth' })}
             className="text-slate-300 hover:text-white"
           >
             <i className="ri-arrow-down-s-line ri-2x"></i>
@@ -141,106 +297,91 @@ function App() {
         </div>
       </section>
 
-      <section id="artis-section">
-
-      </section>
-
-      {/* Music Section - All music-related content moved here */}
-      <section id="music-section" className="py-16 px-4 bg-slate-900/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto">
-          {/* Now Playing Bar */}
-          {currentTrack && (
-            <div className="mb-8 bg-slate-800/70 backdrop-blur-sm rounded-xl p-4 border border-purple-500/30 max-w-2xl mx-auto">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={currentTrack.album.images[2]?.url}
-                    alt={currentTrack.name}
-                    className="w-14 h-14 rounded-lg shadow-lg"
-                  />
-                  <div className="text-left">
-                    <p className="font-semibold text-white text-lg">{currentTrack.name}</p>
-                    <p className="text-sm text-purple-300">
-                      {currentTrack.artists.map(artist => artist.name).join(', ')}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={() => playTrack(currentTrack)}
-                    className="p-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-500/30"
-                  >
-                    {isPlaying ? (
-                      <i className="ri-pause-line ri-lg"></i>
-                    ) : (
-                      <i className="ri-play-line ri-lg"></i>
-                    )}
-                  </button>
-                  <div className="w-24 bg-slate-700 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full transition-all"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
-                </div>
+      {/* Now Playing Bar - Global */}
+      {currentTrack && (
+        <div className="sticky top-0 z-40 bg-slate-800/70 backdrop-blur-sm p-4 border-b border-purple-500/30">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <img
+                src={currentTrack.album.images[2]?.url}
+                alt={currentTrack.name}
+                className="w-14 h-14 rounded-lg shadow-lg"
+              />
+              <div className="text-left">
+                <p className="font-semibold text-white text-lg">{currentTrack.name}</p>
+                <p className="text-sm text-purple-300">
+                  {currentTrack.artists.map(artist => artist.name).join(', ')}
+                </p>
               </div>
             </div>
-          )}
-
-           {/* Title */}
-           <div className="text-center mb-8">
-             <h2 className="text-2xl font-bold text-white mb-2">My Favorite Music Collection</h2>
-             <p className="text-slate-300">Total: {favorites.length} songs</p>
-           </div>
-
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-400/50 text-red-200 rounded-xl backdrop-blur-sm max-w-2xl mx-auto">
-              {error}
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => playTrack(currentTrack)}
+                className="p-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-500/30"
+              >
+                {isPlaying ? (
+                  <i className="ri-pause-line ri-lg"></i>
+                ) : (
+                  <i className="ri-play-line ri-lg"></i>
+                )}
+              </button>
+              <div className="w-24 bg-slate-700 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full transition-all"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
             </div>
-          )}
-
-           {/* Music Content */}
-           <div className="max-w-4xl mx-auto">
-             {isLoading ? (
-               <LoadingSpinner />
-             ) : (
-               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                 {favorites.map((track) => (
-                   <SongCard
-                     key={track.id}
-                     track={track}
-                     onToggleFavorite={handleToggleFavorite}
-                     isPlaying={currentTrack?.id === track.id && isPlaying}
-                     onPlay={handlePlayTrack}
-                   />
-                 ))}
-               </div>
-             )}
-
-             {/* Empty States */}
-             {!isLoading && favorites.length === 0 && (
-               <div className="text-center py-12 bg-slate-800/30 backdrop-blur-sm rounded-2xl border border-slate-600/50">
-                 <div className="text-6xl mb-4">🎵</div>
-                 <p className="text-slate-300 text-lg mb-4">
-                   No favorite songs yet! Add your favorite songs manually in the code.
-                 </p>
-                 <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 max-w-2xl mx-auto">
-                   <h3 className="text-blue-300 font-semibold mb-2">📝 How to add your songs:</h3>
-                   <ol className="text-sm text-blue-200 space-y-1 text-left">
-                     <li>1. Open <code className="bg-slate-700 px-2 py-1 rounded">src/utils/favoriteTracks.js</code></li>
-                     <li>2. Find <code className="bg-slate-700 px-2 py-1 rounded">MY_FAVORITE_TRACK_IDS</code> array</li>
-                     <li>3. Add your song IDs in this format:</li>
-                     <li className="ml-4"><code className="bg-slate-700 px-2 py-1 rounded">'SPOTIFY_TRACK_ID', // Song - Artist</code></li>
-                     
-                   </ol>
-                 </div>
-               </div>
-             )}
-           </div>
+          </div>
         </div>
-      </section>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="sticky top-20 z-30 p-4 bg-red-500/20 border border-red-400/50 text-red-200 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto text-center">
+            {error}
+          </div>
+        </div>
+      )}
+
+      {/* Loading untuk initial data */}
+      {isLoading && Object.keys(artistsWithData).length === 0 ? (
+        <div className="py-16 flex justify-center">
+          <LoadingSpinner />
+        </div>
+      ) : (
+        /* Main Content */
+        currentView === 'artists' ? (
+          <>
+            {renderArtistsSection(getArtistsByGenreWithData('metal'), 'metal', 'Metal Artists')}
+            {renderArtistsSection(getArtistsByGenreWithData('black-metal'), 'black-metal', 'Black Metal Artists')}
+            {renderArtistsSection(getArtistsByGenreWithData('rock'), 'rock', 'Rock Artists')}
+          </>
+        ) : (
+          renderAlbumsView()
+        )
+      )}
+
+      {/* Track Modal */}
+      <TrackModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        artistName={selectedAlbum?.artist}
+        albumName={selectedAlbum?.name}
+        tracks={modalTracks}
+        currentTrack={currentTrack}
+        isPlaying={isPlaying}
+        onPlayTrack={handlePlayTrack}
+        onToggleFavorite={handleToggleFavorite}
+      />
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <LoadingSpinner />
+        </div>
+      )}
     </>
   );
 }

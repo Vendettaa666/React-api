@@ -88,3 +88,79 @@ export const getMultipleTracks = async (trackIds) => {
     throw error;
   }
 };
+
+// NEW: Get artist data from Spotify API
+export const getArtist = async (artistId) => {
+  try {
+    const token = await getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/artists/${artistId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error getting artist:', error);
+    throw error;
+  }
+};
+
+// NEW: Get album data from Spotify API
+export const getAlbum = async (albumId) => {
+  try {
+    const token = await getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/albums/${albumId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error getting album:', error);
+    throw error;
+  }
+};
+
+// NEW: Get multiple artists
+export const getMultipleArtists = async (artistIds) => {
+  try {
+    const token = await getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/artists?ids=${artistIds.join(',')}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    return response.data.artists;
+  } catch (error) {
+    console.error('Error getting multiple artists:', error);
+    throw error;
+  }
+};
+
+// NEW: Get artist's albums
+export const getArtistAlbums = async (artistId, limit = 20) => {
+  try {
+    const token = await getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/artists/${artistId}/albums?limit=${limit}&include_groups=album,single`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    return response.data.items;
+  } catch (error) {
+    console.error('Error getting artist albums:', error);
+    throw error;
+  }
+};
