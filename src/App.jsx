@@ -14,7 +14,6 @@ function App() {
   const [error, setError] = useState(null);
   
   // State untuk navigasi
-  const [currentView, setCurrentView] = useState('artists');
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [modalTracks, setModalTracks] = useState([]);
@@ -78,13 +77,12 @@ function App() {
   };
 
   const handleSelectArtist = (artistName, artistData) => {
-    setSelectedArtist({ name: artistName, data: artistData });
-    setCurrentView('albums');
-  };
-
-  const handleBackToArtists = () => {
-    setCurrentView('artists');
-    setSelectedArtist(null);
+    // Jika artis yang sama diklik lagi, tutup album
+    if (selectedArtist?.name === artistName) {
+      setSelectedArtist(null);
+    } else {
+      setSelectedArtist({ name: artistName, data: artistData });
+    }
   };
 
   const handleSelectAlbum = async (artistName, albumName, albumData) => {
@@ -165,6 +163,7 @@ function App() {
                 key={artistName}
                 artistName={artistName}
                 artistData={artistData}
+                isSelected={selectedArtist?.name === artistName}
                 onSelectArtist={handleSelectArtist}
               />
             ))}
@@ -174,35 +173,19 @@ function App() {
             No artists found for this genre.
           </div>
         )}
-      </div>
-    </section>
-  );
 
-  const renderAlbumsView = () => {
-    if (!selectedArtist) return null;
+        {/* Render albums for selected artist in this section */}
+        {selectedArtist && artists[selectedArtist.name] && (
+          <div className="mt-12 pt-8 border-t border-slate-600/50">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-white mb-2">
+                {selectedArtist.name} - Albums
+              </h3>
+              <p className="text-slate-300">Select an album to view tracks</p>
+            </div>
 
-    const albums = getArtistAlbums(selectedArtist.name);
-
-    return (
-      <section className="py-16 px-4 bg-slate-900/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <button
-              onClick={handleBackToArtists}
-              className="mb-4 px-4 py-2 text-purple-400 hover:text-purple-300 transition-colors flex items-center justify-center gap-2 mx-auto"
-            >
-              <i className="ri-arrow-left-line"></i>
-              Back to Artists
-            </button>
-            <h2 className="text-3xl font-bold text-white mb-2">{selectedArtist.name}</h2>
-            <p className="text-slate-300">Albums Collection</p>
-          </div>
-
-          {/* Albums Grid */}
-          {Object.keys(albums).length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Object.entries(albums).map(([albumName, albumData]) => (
+              {Object.entries(getArtistAlbums(selectedArtist.name)).map(([albumName, albumData]) => (
                 <AlbumCard
                   key={albumName}
                   albumName={albumName}
@@ -212,15 +195,11 @@ function App() {
                 />
               ))}
             </div>
-          ) : (
-            <div className="text-center text-slate-400 py-8">
-              No albums found for this artist.
-            </div>
-          )}
-        </div>
-      </section>
-    );
-  };
+          </div>
+        )}
+      </div>
+    </section>
+  );
 
   return (
     <>
@@ -352,15 +331,11 @@ function App() {
         </div>
       ) : (
         /* Main Content */
-        currentView === 'artists' ? (
-          <>
-            {renderArtistsSection(getArtistsByGenreWithData('metal'), 'metal', 'Metal Artists')}
-            {renderArtistsSection(getArtistsByGenreWithData('black-metal'), 'black-metal', 'Black Metal Artists')}
-            {renderArtistsSection(getArtistsByGenreWithData('rock'), 'rock', 'Rock Artists')}
-          </>
-        ) : (
-          renderAlbumsView()
-        )
+        <>
+          {renderArtistsSection(getArtistsByGenreWithData('metal'), 'metal', 'Metal Artists')}
+          {renderArtistsSection(getArtistsByGenreWithData('black-metal'), 'black-metal', 'Black Metal Artists')}
+          {renderArtistsSection(getArtistsByGenreWithData('rock'), 'rock', 'Rock Artists')}
+        </>
       )}
 
       {/* Track Modal */}
