@@ -228,7 +228,7 @@ function App() {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage:
-              "url('https://i.pinimg.com/1200x/31/0d/46/310d46c63db719604362e80d76ed9afd.jpg')",
+              "url('https://i.pinimg.com/1200x/dd/34/f2/dd34f2caf11d4e4f235559eba14bf832.jpg')",
           }}
         ></div>
 
@@ -238,13 +238,13 @@ function App() {
         {/* Content */}
         <div className="relative z-10 max-w-4xl mx-auto text-center w-full">
           <div className="mb-8">
-            <div className="inline-block bg-gradient-to-r from-purple-600/20 to-indigo-500/20 px-6 py-3 rounded-full mb-6 border border-purple-500/30 backdrop-blur-sm">
-              <span className="text-purple-400 font-semibold text-lg">
+            <div className="inline-block bg-gradient-to-r from-blue-600/20 to-indigo-500/20 px-6 py-3 rounded-full mb-6 border border-blue-500/30 backdrop-blur-sm">
+              <span className="text-blue-400 font-semibold text-lg">
                 My Spotify Music Space
               </span>
             </div>
 
-            <h1 className="mb-8 text-3xl sm:text-4xl md:text-5xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-400">
+            <h1 className="mb-8 text-3xl sm:text-4xl md:text-5xl font-bold leading-tight bg-clip-text  bg-gradient-to-r text-blue-400">
               WELCOME TO <br />
               <span className="block">My Music Dimension</span>
             </h1>
