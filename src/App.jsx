@@ -148,9 +148,20 @@ function App() {
     setModalTracks([]);
   };
 
-  const renderArtistsSection = (artists, genre, title) => (
-    <section id={`${genre}-section`} className="py-16 px-4 bg-slate-900/80 backdrop-blur-sm">
-      <div className="max-w-7xl mx-auto">
+  const renderArtistsSection = (artists, genre, title, bgImage, overlayClass = 'from-slate-900/90') => (
+    <section id={`${genre}-section`} className="py-16 px-4 relative overflow-hidden">
+      {/* Background image for genre */}
+      {bgImage && (
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url('${bgImage}')` }}
+          aria-hidden
+        />
+      )}
+      {/* Overlay to tint the background */}
+      <div className={`absolute inset-0 bg-gradient-to-b ${overlayClass} via-slate-900/70 to-slate-900/90`}></div>
+
+      <div className="relative z-10 max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
           <p className="text-slate-300">Explore your favorite {title.toLowerCase()}</p>
@@ -332,9 +343,29 @@ function App() {
       ) : (
         /* Main Content */
         <>
-          {renderArtistsSection(getArtistsByGenreWithData('metal'), 'metal', 'Metal Artists')}
-          {renderArtistsSection(getArtistsByGenreWithData('black-metal'), 'black-metal', 'Black Metal Artists')}
-          {renderArtistsSection(getArtistsByGenreWithData('rock'), 'rock', 'Rock Artists')}
+          {renderArtistsSection(
+            getArtistsByGenreWithData('metal'),
+            'metal',
+            'Metal Artists',
+            'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=9b1b0a4b1b0f4e7e6c1f3a2e6f7a8d2b',
+            'from-slate-900/80'
+          )}
+
+          {renderArtistsSection(
+            getArtistsByGenreWithData('black-metal'),
+            'black-metal',
+            'Black Metal Artists',
+            'https://images.unsplash.com/photo-1505483531331-7a4b1f44a9c5?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=4d7f2e8b9a0b6d5c3e2f1a0b6c7d8e9f',
+            'from-black/70'
+          )}
+
+          {renderArtistsSection(
+            getArtistsByGenreWithData('rock'),
+            'rock',
+            'Rock Artists',
+            'https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=8e7a1b2c3d4e5f67890abcd123456789',
+            'from-slate-900/70'
+          )}
         </>
       )}
 
