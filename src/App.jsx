@@ -148,27 +148,36 @@ function App() {
     setModalTracks([]);
   };
 
-  const renderArtistsSection = (artists, genre, title, bgImage, overlayClass = 'from-slate-900/90') => (
-    <section id={`${genre}-section`} className="py-16 px-4 relative overflow-hidden">
-      {/* Background image for genre */}
+  const renderArtistsSection = (artists, genre, title, bgImage, overlayClass = 'from-slate-900/90') => {
+  // Cek apakah artis yang dipilih ada di section ini
+  const isArtistInThisSection = selectedArtist && artists[selectedArtist.name];
+
+  return (
+    <section
+      id={`${genre}-section`}
+      className="min-h-screen py-16 px-4 relative overflow-hidden flex flex-col"
+      style={{ minHeight: '100vh' }}
+    >
+      {/* Background image */}
       {bgImage && (
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('${bgImage}')` }}
+          style={{ backgroundImage: `url('${bgImage.trim()}')` }}
           aria-hidden
         />
       )}
-      {/* Overlay to tint the background */}
       <div className={`absolute inset-0 bg-gradient-to-b ${overlayClass} via-slate-900/70 to-slate-900/90`}></div>
 
-      <div className="relative z-10 max-w-7xl mx-auto">
+      <div className="relative z-10 max-w-7xl mx-auto flex-grow flex flex-col">
+        {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
           <p className="text-slate-300">Explore your favorite {title.toLowerCase()}</p>
         </div>
 
+        {/* Daftar Artis */}
         {Object.keys(artists).length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-12">
             {Object.entries(artists).map(([artistName, artistData]) => (
               <ArtistCard
                 key={artistName}
@@ -185,32 +194,41 @@ function App() {
           </div>
         )}
 
-        {/* Render albums for selected artist in this section */}
-        {selectedArtist && artists[selectedArtist.name] && (
-          <div className="mt-12 pt-8 border-t border-slate-600/50">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-white mb-2">
-                {selectedArtist.name} - Albums
-              </h3>
-              <p className="text-slate-300">Select an album to view tracks</p>
+        {/* Area Album — SELALU DITAMPILKAN */}
+        <div className="mt-auto pt-8 border-t border-slate-600/50">
+          {isArtistInThisSection ? (
+            <>
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  {selectedArtist.name} — Albums
+                </h3>
+                <p className="text-slate-300">Select an album to view tracks</p>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {Object.entries(getArtistAlbums(selectedArtist.name)).map(([albumName, albumData]) => (
+                  <AlbumCard
+                    key={albumName}
+                    albumName={albumName}
+                    albumData={albumData}
+                    artistName={selectedArtist.name}
+                    onSelectAlbum={handleSelectAlbum}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-slate-400 text-lg">
+                Silakan klik salah satu artis untuk melihat album mereka.
+              </p>
             </div>
-
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Object.entries(getArtistAlbums(selectedArtist.name)).map(([albumName, albumData]) => (
-                <AlbumCard
-                  key={albumName}
-                  albumName={albumName}
-                  albumData={albumData}
-                  artistName={selectedArtist.name}
-                  onSelectAlbum={handleSelectAlbum}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </section>
   );
+};
+
 
   return (
     <>
