@@ -56,7 +56,7 @@ const AlbumCard = ({ albumName, albumData, artistName, onSelectAlbum }) => {
   return (
     <div 
       onClick={handleClick}
-      className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-600/50 p-4 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:border-purple-500/50 hover:transform hover:-translate-y-1 cursor-pointer"
+      className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-600/50 p-4 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 hover:border-blue-500/50 hover:transform hover:-translate-y-1 cursor-pointer"
     >
       <div className="flex flex-col space-y-3">
         {/* Album Art */}
@@ -77,7 +77,7 @@ const AlbumCard = ({ albumName, albumData, artistName, onSelectAlbum }) => {
               )}
             </>
           ) : (
-            <div className="w-full aspect-square rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
+            <div className="w-full aspect-square rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
               <span className="text-white font-bold text-xl text-center px-2">
                 {albumName.split(' ').map(word => word.charAt(0)).join('').toUpperCase()}
               </span>
@@ -90,7 +90,7 @@ const AlbumCard = ({ albumName, albumData, artistName, onSelectAlbum }) => {
           <h3 className="font-semibold text-white truncate text-lg mb-1">
             {albumName}
           </h3>
-          <p className="text-purple-300 text-sm truncate mb-2">
+          <p className="text-blue-300 text-sm truncate mb-2">
             {artistName}
           </p>
           <p className="text-slate-400 text-xs">
@@ -99,7 +99,7 @@ const AlbumCard = ({ albumName, albumData, artistName, onSelectAlbum }) => {
         </div>
 
         {/* View Button */}
-        <button className="w-full py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-purple-500 hover:to-indigo-500 transition-all">
+        <button className="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-blue-500 hover:to-indigo-500 transition-all">
           View Tracks
         </button>
       </div>
