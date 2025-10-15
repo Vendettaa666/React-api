@@ -12,13 +12,13 @@ function App() {
   const [favorites, setFavorites] = useLocalStorage('spotify-favorites', []);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   // State untuk navigasi
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [modalTracks, setModalTracks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // State untuk data yang difetch dari Spotify
   const [artistsWithData, setArtistsWithData] = useState({});
 
@@ -38,13 +38,13 @@ function App() {
       try {
         const allArtists = getAllArtists();
         const artistIds = Object.values(allArtists).map(artist => artist.id);
-        
+
         // Fetch all artists data from Spotify
         const spotifyArtists = await getMultipleArtists(artistIds);
-        
+
         // Combine our local data with Spotify data
         const combinedArtistsData = {};
-        
+
         Object.entries(allArtists).forEach(([artistName, localData], index) => {
           const spotifyData = spotifyArtists[index];
           combinedArtistsData[artistName] = {
@@ -105,12 +105,12 @@ function App() {
       const trackIds = albumData.tracks;
       const tracks = await getMultipleTracks(trackIds);
       const validTracks = tracks.filter(track => track !== null);
-      
+
       setModalTracks(validTracks);
-      setSelectedAlbum({ 
-        name: albumName, 
-        artist: artistName, 
-        data: albumWithData 
+      setSelectedAlbum({
+        name: albumName,
+        artist: artistName,
+        data: albumWithData
       });
       setIsModalOpen(true);
     } catch (err) {
@@ -149,85 +149,85 @@ function App() {
   };
 
   const renderArtistsSection = (artists, genre, title, bgImage, overlayClass = 'from-slate-900/90') => {
-  // Cek apakah artis yang dipilih ada di section ini
-  const isArtistInThisSection = selectedArtist && artists[selectedArtist.name];
+    // Cek apakah artis yang dipilih ada di section ini
+    const isArtistInThisSection = selectedArtist && artists[selectedArtist.name];
 
-  return (
-    <section
-      id={`${genre}-section`}
-      className="min-h-screen py-16 px-4 relative overflow-hidden flex flex-col"
-      style={{ minHeight: '100vh' }}
-    >
-      {/* Background image */}
-      {bgImage && (
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('${bgImage.trim()}')` }}
-          aria-hidden
-        />
-      )}
-      <div className={`absolute inset-0 bg-gradient-to-b ${overlayClass} via-slate-900/70 to-slate-900/90`}></div>
-
-      <div className="relative z-10 max-w-7xl mx-auto flex-grow flex flex-col">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
-          <p className="text-slate-300">Explore your favorite {title.toLowerCase()}</p>
-        </div>
-
-        {/* Daftar Artis */}
-        {Object.keys(artists).length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-12">
-            {Object.entries(artists).map(([artistName, artistData]) => (
-              <ArtistCard
-                key={artistName}
-                artistName={artistName}
-                artistData={artistData}
-                isSelected={selectedArtist?.name === artistName}
-                onSelectArtist={handleSelectArtist}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-slate-400 py-8">
-            No artists found for this genre.
-          </div>
+    return (
+      <section
+        id={`${genre}-section`}
+        className="min-h-screen py-16 px-4 relative overflow-hidden flex flex-col"
+        style={{ minHeight: '100vh' }}
+      >
+        {/* Background image */}
+        {bgImage && (
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url('${bgImage.trim()}')` }}
+            aria-hidden
+          />
         )}
+        <div className={`absolute inset-0 bg-gradient-to-b ${overlayClass} via-slate-900/70 to-slate-900/90`}></div>
 
-        {/* Area Album — SELALU DITAMPILKAN */}
-        <div className="mt-auto pt-8 border-t border-slate-600/50">
-          {isArtistInThisSection ? (
-            <>
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {selectedArtist.name} — Albums
-                </h3>
-                <p className="text-slate-300">Select an album to view tracks</p>
-              </div>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {Object.entries(getArtistAlbums(selectedArtist.name)).map(([albumName, albumData]) => (
-                  <AlbumCard
-                    key={albumName}
-                    albumName={albumName}
-                    albumData={albumData}
-                    artistName={selectedArtist.name}
-                    onSelectAlbum={handleSelectAlbum}
-                  />
-                ))}
-              </div>
-            </>
+        <div className="relative z-10 max-w-7xl mx-auto flex-grow flex flex-col">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
+            <p className="text-slate-300">Explore your favorite {title.toLowerCase()}</p>
+          </div>
+
+          {/* Daftar Artis */}
+          {Object.keys(artists).length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-12">
+              {Object.entries(artists).map(([artistName, artistData]) => (
+                <ArtistCard
+                  key={artistName}
+                  artistName={artistName}
+                  artistData={artistData}
+                  isSelected={selectedArtist?.name === artistName}
+                  onSelectArtist={handleSelectArtist}
+                />
+              ))}
+            </div>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-slate-400 text-lg">
-                Silakan klik salah satu artis untuk melihat album mereka.
-              </p>
+            <div className="text-center text-slate-400 py-8">
+              No artists found for this genre.
             </div>
           )}
+
+          {/* Area Album — SELALU DITAMPILKAN */}
+          <div className="mt-auto pt-8 border-t border-slate-600/50">
+            {isArtistInThisSection ? (
+              <>
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    {selectedArtist.name} — Albums
+                  </h3>
+                  <p className="text-slate-300">Select an album to view tracks</p>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {Object.entries(getArtistAlbums(selectedArtist.name)).map(([albumName, albumData]) => (
+                    <AlbumCard
+                      key={albumName}
+                      albumName={albumName}
+                      albumData={albumData}
+                      artistName={selectedArtist.name}
+                      onSelectAlbum={handleSelectAlbum}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-slate-400 text-lg">
+                  Silakan klik salah satu artis untuk melihat album mereka.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </section>
-  );
-};
+      </section>
+    );
+  };
 
 
   return (
@@ -238,65 +238,84 @@ function App() {
       {/* Hero Section */}
       <section
         id="hero"
-        className="hero min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
+        className="hero min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-slate-900"
         aria-label="Hero Section"
       >
         {/* Background Image */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-right bg-no-repeat opacity-80"
           style={{
             backgroundImage:
               "url('https://i.pinimg.com/1200x/dd/34/f2/dd34f2caf11d4e4f235559eba14bf832.jpg')",
           }}
         ></div>
 
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/90 via-slate-900/70 to-slate-900/90"></div>
+        {/* Overlay Gelap */}
+        <div className="absolute inset-0 bg-black/70"></div>
 
-        {/* Content */}
-        <div className="relative z-10 max-w-4xl mx-auto text-center w-full">
-          <div className="mb-8">
-            <div className="inline-block bg-gradient-to-r from-blue-600/20 to-indigo-500/20 px-6 py-3 rounded-full mb-6 border border-blue-500/30 backdrop-blur-sm">
-              <span className="text-blue-400 font-semibold text-lg">
-                My Spotify Music Space
-              </span>
+        {/* Content Container */}
+        <div className="relative z-10 max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 w-full px-6">
+
+          {/* Left Side: Text & Buttons */}
+          <div className="lg:w-1/2 text-white space-y-6">
+
+            {/* Header Navigation */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-2-2m-4-4l2 2m2-2l2 2m2 2l2 2M12 16a4 4 0 100-8 4 4 0 000 8z" />
+                </svg>
+                <span className="text-xl font-bold">ECSTASY</span>
+              </div>
             </div>
 
-            <h1 className="mb-8 text-3xl sm:text-4xl md:text-5xl font-bold leading-tight bg-clip-text  bg-gradient-to-r text-blue-400">
-              WELCOME TO <br />
-              <span className="block">My Music Dimension</span>
+            {/* Main Title */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+              The Soul of Music
             </h1>
+
+            {/* Description */}
+            <p className="text-slate-300 text-lg max-w-lg">
+              Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+            </p>
+
+            {/* Button */}
+            <button className="px-6 py-3 bg-white text-slate-900 rounded-full font-medium hover:bg-gray-100 transition-colors">
+              Upcoming Event
+            </button>
           </div>
 
-          {/* Social Media */}
-          <div className="flex items-center justify-center gap-8 mt-12">
-            <a
-              href="https://instagram.com/leoosatriaa"
-              className="text-slate-300 hover:text-pink-400 transition-colors transform hover:scale-110"
-              aria-label="Instagram"
-            >
-              <i className="ri-instagram-line ri-2x"></i>
-            </a>
-            <a
-              href="https://tiktok.com/@vendettaa.666"
-              className="text-slate-300 hover:text-black transition-colors transform hover:scale-110"
-              aria-label="TikTok"
-            >
-              <i className="ri-tiktok-line ri-2x"></i>
-            </a>
-            <a
-              href="https://discord.com/users/770242596945395712"
-              className="text-slate-300 hover:text-indigo-400 transition-colors transform hover:scale-110"
-              aria-label="Discord"
-            >
-              <i className="ri-discord-line ri-2x"></i>
-            </a>
+          {/* Right Side: Social Media Icons (Optional) */}
+          <div className="lg:w-1/2 flex flex-col items-start gap-6">
+            <div className="flex items-center gap-4">
+              <a
+                href="https://instagram.com/leoosatriaa"
+                className="text-slate-300 hover:text-pink-400 transition-colors transform hover:scale-110"
+                aria-label="Instagram"
+              >
+                <i className="ri-instagram-line ri-2x"></i>
+              </a>
+              <a
+                href="https://tiktok.com/@vendettaa.666"
+                className="text-slate-300 hover:text-black transition-colors transform hover:scale-110"
+                aria-label="TikTok"
+              >
+                <i className="ri-tiktok-line ri-2x"></i>
+              </a>
+              <a
+                href="https://discord.com/users/770242596945395712"
+                className="text-slate-300 hover:text-indigo-400 transition-colors transform hover:scale-110"
+                aria-label="Discord"
+              >
+                <i className="ri-discord-line ri-2x"></i>
+              </a>
+            </div>
           </div>
         </div>
 
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <button 
+          <button
             onClick={() => document.getElementById('metal-section')?.scrollIntoView({ behavior: 'smooth' })}
             className="text-slate-300 hover:text-white"
           >
@@ -334,7 +353,7 @@ function App() {
                 )}
               </button>
               <div className="w-24 bg-slate-700 rounded-full h-2">
-                <div 
+                <div
                   className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full transition-all"
                   style={{ width: `${progress}%` }}
                 ></div>

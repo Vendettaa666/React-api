@@ -41,11 +41,12 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-4 md:px-8 flex justify-between items-center">
-        <div className="logo">
-          <h1 className="text-2xl md:text-3xl font-bold text-white">
-           My Music
-          </h1>
-        </div>
+        <div className="flex items-center gap-2">
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-2-2m-4-4l2 2m2-2l2 2m2 2l2 2M12 16a4 4 0 100-8 4 4 0 000 8z"/>
+            </svg>
+            <span className="text-xl font-bold">ECSTASY</span>
+          </div>
 
         <ul
           className={`menu hidden md:flex flex-row items-center gap-6 text-white`}
