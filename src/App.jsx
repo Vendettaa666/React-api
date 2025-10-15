@@ -259,16 +259,6 @@ function App() {
           {/* Left Side: Text & Buttons */}
           <div className="lg:w-1/2 text-white space-y-6">
 
-            {/* Header Navigation */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-2">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-2-2m-4-4l2 2m2-2l2 2m2 2l2 2M12 16a4 4 0 100-8 4 4 0 000 8z" />
-                </svg>
-                <span className="text-xl font-bold">ECSTASY</span>
-              </div>
-            </div>
-
             {/* Main Title */}
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
               The Soul of Music
@@ -279,38 +269,44 @@ function App() {
               Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
             </p>
 
-            {/* Button */}
-            <button className="px-6 py-3 bg-white text-slate-900 rounded-full font-medium hover:bg-gray-100 transition-colors">
-              Upcoming Event
-            </button>
-          </div>
+            {/* BARU: Container untuk Tombol & Social Media */}
+            <div className="flex flex-col sm:flex-row items-center gap-6 pt-2">
 
-          {/* Right Side: Social Media Icons (Optional) */}
-          <div className="lg:w-1/2 flex flex-col items-start gap-6">
-            <div className="flex items-center gap-4">
-              <a
-                href="https://instagram.com/leoosatriaa"
-                className="text-slate-300 hover:text-pink-400 transition-colors transform hover:scale-110"
-                aria-label="Instagram"
-              >
-                <i className="ri-instagram-line ri-2x"></i>
-              </a>
-              <a
-                href="https://tiktok.com/@vendettaa.666"
-                className="text-slate-300 hover:text-black transition-colors transform hover:scale-110"
-                aria-label="TikTok"
-              >
-                <i className="ri-tiktok-line ri-2x"></i>
-              </a>
-              <a
-                href="https://discord.com/users/770242596945395712"
-                className="text-slate-300 hover:text-indigo-400 transition-colors transform hover:scale-110"
-                aria-label="Discord"
-              >
-                <i className="ri-discord-line ri-2x"></i>
-              </a>
+              {/* Button */}
+              <button className="px-6 py-3 bg-white text-slate-900 rounded-full font-medium hover:bg-gray-100 transition-colors w-full sm:w-auto">
+                Upcoming Event
+              </button>
+
+              {/* Social Media Icons */}
+              <div className="flex items-center gap-4">
+                <a
+                  href="https://instagram.com/leoosatriaa"
+                  className="text-slate-300 hover:text-pink-400 transition-colors transform hover:scale-110"
+                  aria-label="Instagram"
+                >
+                  <i className="ri-instagram-line ri-2x"></i>
+                </a>
+                <a
+                  href="https://tiktok.com/@vendettaa.666"
+                  className="text-slate-300 hover:text-black transition-colors transform hover:scale-110"
+                  aria-label="TikTok"
+                >
+                  <i className="ri-tiktok-line ri-2x"></i>
+                </a>
+                <a
+                  href="https://discord.com/users/770242596945395712"
+                  className="text-slate-300 hover:text-indigo-400 transition-colors transform hover:scale-110"
+                  aria-label="Discord"
+                >
+                  <i className="ri-discord-line ri-2x"></i>
+                </a>
+              </div>
             </div>
           </div>
+
+          {/* Kosongkan bagian kanan karena semua konten sudah di kiri */}
+          {/* Hapus div Right Side: Social Media Icons (Optional) yang sebelumnya ada di sini */}
+
         </div>
 
         {/* Scroll Indicator */}
