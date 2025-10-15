@@ -4,7 +4,7 @@ const ArtistCard = ({ artistName, artistData, isSelected, onSelectArtist }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [artistImage, setArtistImage] = useState(null);
-  
+
   // Fetch artist image when component mounts
   useEffect(() => {
     const fetchArtistImage = async () => {
@@ -28,63 +28,72 @@ const ArtistCard = ({ artistName, artistData, isSelected, onSelectArtist }) => {
   };
 
   return (
-    <div 
+    <div
       onClick={handleClick}
-      className={`bg-slate-800/50 backdrop-blur-sm rounded-2xl border p-6 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:transform hover:-translate-y-1 cursor-pointer ${
-        isSelected 
-          ? 'border-purple-500 shadow-2xl shadow-purple-500/20 -translate-y-1' 
-          : 'border-slate-600/50 hover:border-purple-500/50'
+      className={`flex flex-col items-center cursor-pointer transition-all duration-300 ${
+        isSelected
+          ? 'scale-105'
+          : 'hover:scale-105 hover:opacity-90'
       }`}
     >
-      <div className="flex flex-col items-center text-center space-y-4">
-        {/* Artist Image */}
-        <div className="relative w-32 h-32">
-          {artistImage && !imageError ? (
-            <>
-              <img
-                src={artistImage}
-                alt={artistName}
-                className={`w-full h-full rounded-full object-cover ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0'
-                } transition-opacity duration-300`}
-                onLoad={() => setImageLoaded(true)}
-                onError={handleImageError}
-              />
-              {!imageLoaded && (
-                <div className="absolute inset-0 bg-slate-700 rounded-full animate-pulse"></div>
-              )}
-            </>
-          ) : (
-            <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">
-                {artistName.charAt(0)}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Artist Info */}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-white truncate text-lg mb-2">
-            {artistName}
-          </h3>
-          <p className="text-purple-300 text-sm capitalize">
-            {artistData.genre?.replace('-', ' ') || 'Artist'}
-          </p>
-          <p className="text-slate-400 text-xs mt-1">
-            {Object.keys(artistData.albums || {}).length} albums
-          </p>
-        </div>
-
-        {/* View Button */}
-        <button className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+      {/* Circle Image */}
+      <div
+        className={`relative w-48 h-48 rounded-full overflow-hidden border-2 transition-all duration-300 ${
           isSelected
-            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white'
-            : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500'
-        }`}>
-          {isSelected ? 'Hide Albums' : 'View Albums'}
+            ? 'border-blue-500 ring-2 ring-blue-400/50'
+            : 'border-slate-600/50 hover:border-blue-500/50'
+        }`}
+      >
+        {artistImage && !imageError ? (
+          <>
+            <img
+              src={artistImage}
+              alt={artistName}
+              className={`w-full h-full object-cover ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              } transition-opacity duration-300`}
+              onLoad={() => setImageLoaded(true)}
+              onError={handleImageError}
+            />
+            {!imageLoaded && (
+              <div className="absolute inset-0 bg-slate-700 animate-pulse"></div>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
+            <span className="text-white font-bold text-2xl">
+              {artistName.charAt(0)}
+            </span>
+          </div>
+        )}
+
+        {/* View Button - Small Icon in Corner */}
+        <button
+          className={`absolute bottom-2 right-2 p-1.5 rounded-full text-xs font-medium transition-all ${
+            isSelected
+              ? 'bg-blue-500 text-white'
+              : 'bg-blue-600 text-white hover:bg-blue-500'
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelectArtist(artistName, artistData);
+          }}
+        >
+          {isSelected ? '✕' : '+'}
         </button>
       </div>
+
+      {/* Artist Name Below Circle */}
+      <h3 className="mt-3 font-semibold text-white text-lg truncate max-w-[12rem] text-center">
+        {artistName}
+      </h3>
+
+      {/* Optional: Genre or Album Count */}
+      {artistData.genre && (
+        <p className="text-purple-300 text-sm mt-1 capitalize">
+          {artistData.genre.replace('-', ' ')}
+        </p>
+      )}
     </div>
   );
 };
