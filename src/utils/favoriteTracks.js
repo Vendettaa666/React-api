@@ -1,97 +1,90 @@
-  // Your Personal Music Collection - New Structure
+
   export const ARTISTS_DATA = {
-    // Metal Artists
     "Korn": {
-        id: "3RNrq3jvMZxD9ZyoOZbQOD", // Hanya ID saja
+        id: "3RNrq3jvMZxD9ZyoOZbQOD", 
       genre: "metal",
       albums: {
           "POST HUMAN: NeX GEn": {
-            // corrected album ID (previous value duplicated another album)
-            id: "7Cpc5A7zhTKXkUDKnYLRYy", // Album ID
+            id: "7Cpc5A7zhTKXkUDKnYLRYy", 
           tracks: [
-            '7HKRWMTErKh56EIBeFcmdf', // Lost
-            '5QQlmUR2fIfrstMT0TMC97', // DArkSide
+            '7HKRWMTErKh56EIBeFcmdf', 
+            '5QQlmUR2fIfrstMT0TMC97', 
           ]
         },
         "Amo": {
           id: "04mkS7FooK8fRbB626T9NR",
           tracks: [
-            '3iJxLAi8NQw3e5YGiGVqXj', // Mantra
+            '3iJxLAi8NQw3e5YGiGVqXj', 
             '6L89mwZXSOwYl76YXfX13s', // Wonderful Life
           ]
         }
       }
     },
 
-    // Metal Artists
     "Avanged Sevenfold": {
-        id: "0nmQIMXWTXfhgOBdNzhGOs", // Hanya ID saja
+        id: "0nmQIMXWTXfhgOBdNzhGOs", 
       genre: "metal",
       albums: {
           "POST HUMAN: NeX GEn": {
-            // corrected album ID (previous value duplicated another album)
-            id: "7Cpc5A7zhTKXkUDKnYLRYy", // Album ID
+            id: "7Cpc5A7zhTKXkUDKnYLRYy", 
           tracks: [
-            '7HKRWMTErKh56EIBeFcmdf', // Lost
-            '5QQlmUR2fIfrstMT0TMC97', // DArkSide
+            '7HKRWMTErKh56EIBeFcmdf', 
+            '5QQlmUR2fIfrstMT0TMC97', 
           ]
         },
         "Amo": {
           id: "04mkS7FooK8fRbB626T9NR",
           tracks: [
-            '3iJxLAi8NQw3e5YGiGVqXj', // Mantra
-            '6L89mwZXSOwYl76YXfX13s', // Wonderful Life
+            '3iJxLAi8NQw3e5YGiGVqXj', 
+            '6L89mwZXSOwYl76YXfX13s', 
           ]
         }
       }
     },
 
-     // Metal Artists
     " Bring Me The Horizon": {
-        id: "1Ffb6ejR6Fe5IamqA5oRUF", // Hanya ID saja
+        id: "1Ffb6ejR6Fe5IamqA5oRUF", 
       genre: "metal",
       albums: {
           "POST HUMAN: NeX GEn": {
-            // corrected album ID (previous value duplicated another album)
-            id: "7Cpc5A7zhTKXkUDKnYLRYy", // Album ID
+            id: "7Cpc5A7zhTKXkUDKnYLRYy", 
           tracks: [
-            '7HKRWMTErKh56EIBeFcmdf', // Lost
-            '5QQlmUR2fIfrstMT0TMC97', // DArkSide
+            '7HKRWMTErKh56EIBeFcmdf', 
+            '5QQlmUR2fIfrstMT0TMC97', 
           ]
         },
         "Amo": {
           id: "04mkS7FooK8fRbB626T9NR",
           tracks: [
-            '3iJxLAi8NQw3e5YGiGVqXj', // Mantra
-            '6L89mwZXSOwYl76YXfX13s', // Wonderful Life
+            '3iJxLAi8NQw3e5YGiGVqXj', 
+            '6L89mwZXSOwYl76YXfX13s',
           ]
         }
       }
     },
 
     "Slipknot": {
-      id: "05fG473iIaoy82BF1aGhL8", // ID dari URL Anda
+      id: "05fG473iIaoy82BF1aGhL8", 
       genre: "metal",
       albums: {
         "We Are Not Your Kind": {
-          // corrected album ID for Slipknot
+          
           id: "7aVKCN8M7aYs2s2NQH3p2e",
           tracks: [
-            '2GbJ7W88aYYh8GQbsd3wt2', // Unsainted
-            '6IskveohQRW7jX5Vy49p4U', // Solway Firth
+            '2GbJ7W88aYYh8GQbsd3wt2', 
+            '6IskveohQRW7jX5Vy49p4U', 
           ]
         },
         "Iowa": {
           id: "hG1tQ1NfSWKnxCuFSBTmAA",
           tracks: [
-            '3f9uWeCG0p28v84DqPwtQU', // Left Behind
-            '0Q7a3K1M7LjjKZZ2cO8wFD', // My Plague
+            '3f9uWeCG0p28v84DqPwtQU', 
+            '0Q7a3K1M7LjjKZZ2cO8wFD',
           ]
         }
       }
     },
 
-        // Black Metal Artists
     "Dimmu Borgir": {
       id: "6e8ISIsI7UQZPyEorefAhK",
       genre: "black-metal",
@@ -99,8 +92,8 @@
         "Death Cult Armageddon": {
           id: "4vH4syekS3nRm3Y3E0yAww",
           tracks: [
-            '2eT3MkLxTvUaZiPi0JIND1', // Progenies of the Great Apocalypse
-            '5t5Q7p0G9QBo2iDp0lR0d9', // Vredesbyrd
+            '2eT3MkLxTvUaZiPi0JIND1',
+            '5t5Q7p0G9QBo2iDp0lR0d9', 
           ]
         }
       }

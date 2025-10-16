@@ -38,7 +38,7 @@ const ArtistCard = ({ artistName, artistData, isSelected, onSelectArtist }) => {
     >
       {/* Circle Image */}
       <div
-        className={`relative w-48 h-48 rounded-full overflow-hidden border-2 transition-all duration-300 ${
+        className={`relative w-25 h-25 rounded-full overflow-hidden border-2 transition-all duration-300 ${
           isSelected
             ? 'border-blue-500 ring-2 ring-blue-400/50'
             : 'border-slate-600/50 hover:border-blue-500/50'
@@ -69,7 +69,7 @@ const ArtistCard = ({ artistName, artistData, isSelected, onSelectArtist }) => {
 
         {/* View Button - Small Icon in Corner */}
         <button
-          className={`absolute bottom-2 right-2 p-1.5 rounded-full text-xs font-medium transition-all ${
+          className={`absolute bottom-2 right-2  w-5 h-5 rounded-full text-xs font-medium transition-all ${
             isSelected
               ? 'bg-blue-500 text-white'
               : 'bg-blue-600 text-white hover:bg-blue-500'
