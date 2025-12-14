@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getMultipleTracks, getArtist, getAlbum, getMultipleArtists } from './services/spotifyApi';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
@@ -7,20 +7,38 @@ import ArtistCard from './components/ArtistCard';
 import AlbumCard from './components/AlbumCard';
 import TrackModal from './components/TrackModal';
 import LoadingSpinner from './components/LoadingSpinner';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, FreeMode, Autoplay, EffectCoverflow } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/free-mode';
+import 'swiper/css/effect-coverflow';
 
 function App() {
   const [favorites, setFavorites] = useLocalStorage('spotify-favorites', []);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // State untuk navigasi
+  
+  // Enhanced navigation states
+  const [currentView, setCurrentView] = useState('home');
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [modalTracks, setModalTracks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // State untuk data yang difetch dari Spotify
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeGenre, setActiveGenre] = useState('all');
+  
+  // Data states
   const [artistsWithData, setArtistsWithData] = useState({});
+  const [featuredTracks, setFeaturedTracks] = useState([]);
+  
+  // UI states
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  
+  // Refs
+  const heroRef = useRef(null);
+  const exploreRef = useRef(null);
 
   const {
     currentTrack,
@@ -31,6 +49,16 @@ function App() {
     stopTrack
   } = useAudioPlayer();
 
+  // Scroll detection for navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Fetch all artist data from Spotify on component mount
   useEffect(() => {
     const fetchArtistsData = async () => {
@@ -38,13 +66,13 @@ function App() {
       try {
         const allArtists = getAllArtists();
         const artistIds = Object.values(allArtists).map(artist => artist.id);
-
+        
         // Fetch all artists data from Spotify
         const spotifyArtists = await getMultipleArtists(artistIds);
-
+        
         // Combine our local data with Spotify data
         const combinedArtistsData = {};
-
+        
         Object.entries(allArtists).forEach(([artistName, localData], index) => {
           const spotifyData = spotifyArtists[index];
           combinedArtistsData[artistName] = {
@@ -54,10 +82,23 @@ function App() {
         });
 
         setArtistsWithData(combinedArtistsData);
+        
+        // Set featured tracks from first few albums
+        const featured = [];
+        Object.values(combinedArtistsData).slice(0, 3).forEach(artist => {
+          const albums = getArtistAlbums(Object.keys(combinedArtistsData).find(key => combinedArtistsData[key] === artist));
+          if (albums && Object.keys(albums).length > 0) {
+            const firstAlbum = Object.values(albums)[0];
+            if (firstAlbum.tracks && firstAlbum.tracks.length > 0) {
+              featured.push(...firstAlbum.tracks.slice(0, 2));
+            }
+          }
+        });
+        setFeaturedTracks(featured);
+        
       } catch (err) {
         console.error('Error fetching artists data:', err);
         setError('Failed to load artists data');
-        // Fallback to local data
         setArtistsWithData(getAllArtists());
       } finally {
         setIsLoading(false);
@@ -77,12 +118,13 @@ function App() {
   };
 
   const handleSelectArtist = (artistName, artistData) => {
-    // Jika artis yang sama diklik lagi, tutup album
-    if (selectedArtist?.name === artistName) {
-      setSelectedArtist(null);
-    } else {
-      setSelectedArtist({ name: artistName, data: artistData });
-    }
+    setSelectedArtist({ name: artistName, data: artistData });
+    setCurrentView('albums');
+  };
+
+  const handleBackToArtists = () => {
+    setCurrentView('artists');
+    setSelectedArtist(null);
   };
 
   const handleSelectAlbum = async (artistName, albumName, albumData) => {
@@ -105,12 +147,12 @@ function App() {
       const trackIds = albumData.tracks;
       const tracks = await getMultipleTracks(trackIds);
       const validTracks = tracks.filter(track => track !== null);
-
+      
       setModalTracks(validTracks);
-      setSelectedAlbum({
-        name: albumName,
-        artist: artistName,
-        data: albumWithData
+      setSelectedAlbum({ 
+        name: albumName, 
+        artist: artistName, 
+        data: albumWithData 
       });
       setIsModalOpen(true);
     } catch (err) {
@@ -148,211 +190,450 @@ function App() {
     setModalTracks([]);
   };
 
-  const renderArtistsSection = (artists, genre, title, bgImage, overlayClass = 'from-slate-900/90') => {
-    // Cek apakah artis yang dipilih ada di section ini
-    const isArtistInThisSection = selectedArtist && artists[selectedArtist.name];
-
-    return (
-      <section
-        id={`${genre}-section`}
-        className="min-h-screen py-16 px-4 relative overflow-hidden flex flex-col"
-        style={{ minHeight: '100vh' }}
-      >
-        {/* Background image */}
-        {bgImage && (
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url('${bgImage.trim()}')` }}
-            aria-hidden
-          />
-        )}
-        <div className={`absolute inset-0 bg-gradient-to-b ${overlayClass} via-slate-900/70 to-slate-900/90`}></div>
-
-        <div className="relative z-10 max-w-7xl mx-auto flex-grow flex flex-col">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
-            <p className="text-slate-300">Explore your favorite {title.toLowerCase()}</p>
+  // Modern Navigation Component
+  const ModernNavbar = () => (
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      isScrolled ? 'glass-dark shadow-2xl' : 'bg-transparent'
+    }`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
+              <i className="ri-music-2-line text-white text-xl"></i>
+            </div>
+            <span className="text-xl font-bold gradient-text-purple">SoulBeats</span>
           </div>
 
-          {/* Daftar Artis */}
-          {Object.keys(artists).length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-12">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            <button 
+              onClick={() => setCurrentView('home')}
+              className={`px-4 py-2 rounded-lg transition-all ${
+                currentView === 'home' 
+                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' 
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              Home
+            </button>
+            <button 
+              onClick={() => setCurrentView('explore')}
+              className={`px-4 py-2 rounded-lg transition-all ${
+                currentView === 'explore' 
+                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' 
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              Explore
+            </button>
+            <button 
+              onClick={() => setCurrentView('favorites')}
+              className={`px-4 py-2 rounded-lg transition-all ${
+                currentView === 'favorites' 
+                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' 
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              Favorites ({favorites.length})
+            </button>
+          </div>
+
+          {/* Search Bar */}
+          <div className="hidden lg:flex items-center">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search artists, albums..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-64 px-4 py-2 pl-10 glass rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              />
+              <i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="md:hidden p-2 rounded-lg glass"
+          >
+            <i className={`ri-${showMobileMenu ? 'close' : 'menu'}-line text-white text-xl`}></i>
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {showMobileMenu && (
+          <div className="md:hidden mt-4 pb-4 glass-dark rounded-xl">
+            <div className="px-4 py-2 space-y-2">
+              <button 
+                onClick={() => { setCurrentView('home'); setShowMobileMenu(false); }}
+                className="block w-full text-left px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5"
+              >
+                Home
+              </button>
+              <button 
+                onClick={() => { setCurrentView('explore'); setShowMobileMenu(false); }}
+                className="block w-full text-left px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5"
+              >
+                Explore
+              </button>
+              <button 
+                onClick={() => { setCurrentView('favorites'); setShowMobileMenu(false); }}
+                className="block w-full text-left px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5"
+              >
+                Favorites ({favorites.length})
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+
+  // Modern Hero Section
+  const ModernHero = () => (
+    <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 animated-gradient opacity-20"></div>
+      
+      {/* Floating Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-purple-500/10 rounded-full blur-xl float"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-blue-500/10 rounded-full blur-xl float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-pink-500/10 rounded-full blur-xl float" style={{animationDelay: '4s'}}></div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
+        <div className="space-y-8">
+          {/* Main Title with Animation */}
+          <div className="space-y-4">
+            <h1 className="text-5xl md:text-7xl font-bold">
+              <span className="gradient-text-purple">Feel the</span>
+              <br />
+              <span className="text-white">Soul of Music</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Discover extraordinary artists, explore diverse genres, and immerse yourself in the ultimate music experience
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <button 
+              onClick={() => exploreRef.current?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl font-semibold hover-lift pulse-glow flex items-center gap-3"
+            >
+              <i className="ri-play-circle-line text-2xl"></i>
+              Start Exploring
+            </button>
+            <button 
+              onClick={() => setCurrentView('favorites')}
+              className="px-8 py-4 glass border border-white/20 text-white rounded-2xl font-semibold hover-lift flex items-center gap-3"
+            >
+              <i className="ri-heart-line text-xl"></i>
+              My Favorites ({favorites.length})
+            </button>
+          </div>
+
+          {/* Music Wave Indicator */}
+          {currentTrack && isPlaying && (
+            <div className="flex justify-center mt-8">
+              <div className="music-wave">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <button
+          onClick={() => exploreRef.current?.scrollIntoView({ behavior: 'smooth' })}
+          className="p-3 glass rounded-full hover:bg-white/10 transition-all"
+        >
+          <i className="ri-arrow-down-line text-white text-xl"></i>
+        </button>
+      </div>
+    </section>
+  );
+
+  // Enhanced Artists Section
+  const renderArtistsSection = (artists, genre, title) => (
+    <section className="py-16 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-white mb-4">{title}</h2>
+          <p className="text-xl text-gray-300">Discover amazing {title.toLowerCase()}</p>
+          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto mt-4 rounded-full"></div>
+        </div>
+
+        {Object.keys(artists).length > 0 ? (
+          <div className="relative">
+            <Swiper
+              modules={[Navigation, FreeMode, Autoplay]}
+              spaceBetween={24}
+              slidesPerView={'auto'}
+              freeMode={true}
+              autoplay={{
+                delay: 3000,
+                disableOnInteraction: false,
+              }}
+              navigation={{
+                nextEl: `.swiper-button-next-${genre}`,
+                prevEl: `.swiper-button-prev-${genre}`,
+              }}
+              className="!px-12"
+            >
               {Object.entries(artists).map(([artistName, artistData]) => (
-                <ArtistCard
-                  key={artistName}
-                  artistName={artistName}
-                  artistData={artistData}
-                  isSelected={selectedArtist?.name === artistName}
-                  onSelectArtist={handleSelectArtist}
+                <SwiperSlide key={artistName} style={{ width: 'auto' }}>
+                  <ArtistCard
+                    artistName={artistName}
+                    artistData={artistData}
+                    onSelectArtist={handleSelectArtist}
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            
+            {/* Enhanced Navigation Buttons */}
+            <button className={`swiper-button-prev-${genre} absolute left-0 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 glass rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-all border border-white/10 hover:border-purple-500/50`}>
+              <i className="ri-arrow-left-s-line text-xl"></i>
+            </button>
+            <button className={`swiper-button-next-${genre} absolute right-0 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 glass rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-all border border-white/10 hover:border-purple-500/50`}>
+              <i className="ri-arrow-right-s-line text-xl"></i>
+            </button>
+          </div>
+        ) : (
+          <div className="text-center text-gray-400 py-16">
+            <i className="ri-music-line text-6xl mb-4 opacity-50"></i>
+            <p className="text-xl">No artists found for this genre</p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  const renderAlbumsView = () => {
+    if (!selectedArtist) return null;
+
+    const albums = getArtistAlbums(selectedArtist.name);
+
+    return (
+      <section className="py-20 px-4 min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          {/* Enhanced Header */}
+          <div className="text-center mb-12">
+            <button
+              onClick={handleBackToArtists}
+              className="mb-6 px-6 py-3 glass rounded-2xl text-purple-400 hover:text-purple-300 transition-all flex items-center justify-center gap-3 mx-auto hover-lift"
+            >
+              <i className="ri-arrow-left-line text-xl"></i>
+              Back to Explore
+            </button>
+            
+            {/* Artist Info */}
+            <div className="mb-8">
+              {selectedArtist.data.spotifyData?.images?.[0] && (
+                <img
+                  src={selectedArtist.data.spotifyData.images[0].url}
+                  alt={selectedArtist.name}
+                  className="w-32 h-32 rounded-full mx-auto mb-6 object-cover shadow-2xl"
                 />
+              )}
+              <h2 className="text-5xl font-bold gradient-text-purple mb-4">{selectedArtist.name}</h2>
+              <p className="text-xl text-gray-300 mb-2">Albums Collection</p>
+              <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
+                <span className="flex items-center gap-1">
+                  <i className="ri-album-line"></i>
+                  {Object.keys(albums).length} Albums
+                </span>
+                <span className="flex items-center gap-1">
+                  <i className="ri-music-line"></i>
+                  {selectedArtist.data.genre}
+                </span>
+              </div>
+            </div>
+            
+            <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
+          </div>
+
+          {/* Enhanced Albums Grid */}
+          {Object.keys(albums).length > 0 ? (
+            <div className="album-grid">
+              {Object.entries(albums).map(([albumName, albumData]) => (
+                <div key={albumName} className="group">
+                  <AlbumCard
+                    albumName={albumName}
+                    albumData={albumData}
+                    artistName={selectedArtist.name}
+                    onSelectAlbum={handleSelectAlbum}
+                  />
+                </div>
               ))}
             </div>
           ) : (
-            <div className="text-center text-slate-400 py-8">
-              No artists found for this genre.
+            <div className="text-center py-16">
+              <i className="ri-album-line text-6xl text-gray-400 mb-4 opacity-50"></i>
+              <h3 className="text-2xl text-white mb-2">No albums found</h3>
+              <p className="text-gray-400">This artist doesn't have any albums in our collection yet.</p>
             </div>
           )}
-
-          {/* Area Album — SELALU DITAMPILKAN */}
-          <div className="mt-auto pt-8 border-t border-slate-600/50">
-            {isArtistInThisSection ? (
-              <>
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-white mb-2">
-                    {selectedArtist.name} — Albums
-                  </h3>
-                  <p className="text-slate-300">Select an album to view tracks</p>
-                </div>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {Object.entries(getArtistAlbums(selectedArtist.name)).map(([albumName, albumData]) => (
-                    <AlbumCard
-                      key={albumName}
-                      albumName={albumName}
-                      albumData={albumData}
-                      artistName={selectedArtist.name}
-                      onSelectAlbum={handleSelectAlbum}
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-slate-400 text-lg">
-                  Silakan klik salah satu artis untuk melihat album mereka.
-                </p>
-              </div>
-            )}
-          </div>
         </div>
       </section>
     );
   };
 
+  // Genre Filter Component
+  const GenreFilter = () => {
+    const genres = [
+      { id: 'all', name: 'All Genres', icon: 'ri-music-line' },
+      { id: 'metal', name: 'Metal', icon: 'ri-fire-line' },
+      { id: 'black-metal', name: 'Black Metal', icon: 'ri-skull-line' },
+      { id: 'rock', name: 'Rock', icon: 'ri-guitar-line' }
+    ];
+
+    return (
+      <div className="flex flex-wrap justify-center gap-4 mb-12">
+        {genres.map(genre => (
+          <button
+            key={genre.id}
+            onClick={() => setActiveGenre(genre.id)}
+            className={`px-6 py-3 rounded-2xl font-medium transition-all flex items-center gap-2 ${
+              activeGenre === genre.id
+                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg shadow-purple-500/30'
+                : 'glass text-gray-300 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <i className={`${genre.icon} text-lg`}></i>
+            {genre.name}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  // Favorites View Component
+  const FavoritesView = () => (
+    <section className="py-16 px-4 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-white mb-4">Your Favorites</h2>
+          <p className="text-xl text-gray-300">Your personal music collection</p>
+          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto mt-4 rounded-full"></div>
+        </div>
+
+        {favorites.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {favorites.map(track => (
+              <div key={track.id} className="glass rounded-2xl p-6 hover-lift">
+                <img
+                  src={track.album.images[1]?.url}
+                  alt={track.name}
+                  className="w-full aspect-square rounded-xl mb-4 object-cover"
+                />
+                <h3 className="text-white font-semibold mb-2 truncate">{track.name}</h3>
+                <p className="text-gray-400 text-sm mb-4 truncate">
+                  {track.artists.map(artist => artist.name).join(', ')}
+                </p>
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => handlePlayTrack(track)}
+                    className="p-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full hover:shadow-lg hover:shadow-purple-500/30 transition-all"
+                  >
+                    <i className={`ri-${currentTrack?.id === track.id && isPlaying ? 'pause' : 'play'}-line text-white`}></i>
+                  </button>
+                  <button
+                    onClick={() => handleToggleFavorite(track)}
+                    className="p-3 glass rounded-full hover:bg-red-500/20 transition-all"
+                  >
+                    <i className="ri-heart-fill text-red-500"></i>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <i className="ri-heart-line text-6xl text-gray-400 mb-4 opacity-50"></i>
+            <h3 className="text-2xl text-white mb-2">No favorites yet</h3>
+            <p className="text-gray-400 mb-8">Start exploring and add some tracks to your favorites!</p>
+            <button
+              onClick={() => setCurrentView('explore')}
+              className="px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl font-semibold hover-lift"
+            >
+              Explore Music
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
       {/* Hidden Audio Element */}
       <audio ref={audioRef} />
 
-      {/* Hero Section */}
-      <section
-        id="hero"
-        className="hero min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-slate-900"
-        aria-label="Hero Section"
-      >
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-right bg-no-repeat opacity-80"
-          style={{
-            backgroundImage:
-              "url('https://i.pinimg.com/1200x/dd/34/f2/dd34f2caf11d4e4f235559eba14bf832.jpg')",
-          }}
-        ></div>
+      {/* Modern Navigation */}
+      <ModernNavbar />
 
-        {/* Overlay Gelap */}
-        <div className="absolute inset-0 bg-black/70"></div>
-
-        {/* Content Container */}
-        <div className="relative z-10 max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 w-full px-6">
-
-          {/* Left Side: Text & Buttons */}
-          <div className="lg:w-1/2 text-white space-y-6">
-
-            {/* Main Title */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
-              The Soul of Music
-            </h1>
-
-            {/* Description */}
-            <p className="text-slate-300 text-lg max-w-lg">
-              Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-            </p>
-
-            {/* BARU: Container untuk Tombol & Social Media */}
-            <div className="flex flex-col sm:flex-row items-center gap-6 pt-2">
-
-              {/* Button */}
-              <button className="px-6 py-3 bg-white text-slate-900 rounded-full font-medium hover:bg-gray-100 transition-colors w-full sm:w-auto">
-                Upcoming Event
-              </button>
-
-              {/* Social Media Icons */}
-              <div className="flex items-center gap-4">
-                <a
-                  href="https://instagram.com/leoosatriaa"
-                  className="text-slate-300 hover:text-pink-400 transition-colors transform hover:scale-110"
-                  aria-label="Instagram"
-                >
-                  <i className="ri-instagram-line ri-2x"></i>
-                </a>
-                <a
-                  href="https://tiktok.com/@vendettaa.666"
-                  className="text-slate-300 hover:text-black transition-colors transform hover:scale-110"
-                  aria-label="TikTok"
-                >
-                  <i className="ri-tiktok-line ri-2x"></i>
-                </a>
-                <a
-                  href="https://discord.com/users/770242596945395712"
-                  className="text-slate-300 hover:text-indigo-400 transition-colors transform hover:scale-110"
-                  aria-label="Discord"
-                >
-                  <i className="ri-discord-line ri-2x"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Kosongkan bagian kanan karena semua konten sudah di kiri */}
-          {/* Hapus div Right Side: Social Media Icons (Optional) yang sebelumnya ada di sini */}
-
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <button
-            onClick={() => document.getElementById('metal-section')?.scrollIntoView({ behavior: 'smooth' })}
-            className="text-slate-300 hover:text-white"
-          >
-            <i className="ri-arrow-down-s-line ri-2x"></i>
-          </button>
-        </div>
-      </section>
-
-      {/* Now Playing Bar - Global */}
+      {/* Enhanced Now Playing Bar */}
       {currentTrack && (
-        <div className="sticky top-0 z-40 bg-slate-800/70 backdrop-blur-sm p-4 border-b border-purple-500/30">
+        <div className="fixed bottom-0 left-0 right-0 z-40 glass-dark border-t border-white/10 p-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <img
                 src={currentTrack.album.images[2]?.url}
                 alt={currentTrack.name}
-                className="w-14 h-14 rounded-lg shadow-lg"
+                className="w-16 h-16 rounded-xl shadow-lg object-cover"
               />
               <div className="text-left">
-                <p className="font-semibold text-white text-lg">{currentTrack.name}</p>
-                <p className="text-sm text-purple-300">
+                <p className="font-semibold text-white text-lg truncate max-w-48">{currentTrack.name}</p>
+                <p className="text-sm text-purple-300 truncate max-w-48">
                   {currentTrack.artists.map(artist => artist.name).join(', ')}
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            
+            <div className="flex items-center space-x-6">
+              <button
+                onClick={() => handleToggleFavorite(currentTrack)}
+                className={`p-2 rounded-full transition-all ${
+                  favorites.some(fav => fav.id === currentTrack.id)
+                    ? 'text-red-500 hover:bg-red-500/20'
+                    : 'text-gray-400 hover:text-red-500 hover:bg-red-500/10'
+                }`}
+              >
+                <i className={`ri-heart-${favorites.some(fav => fav.id === currentTrack.id) ? 'fill' : 'line'} text-xl`}></i>
+              </button>
+              
               <button
                 onClick={() => playTrack(currentTrack)}
-                className="p-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg shadow-purple-500/30"
+                className="p-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full hover:shadow-lg hover:shadow-purple-500/30 transition-all pulse-glow"
               >
                 {isPlaying ? (
-                  <i className="ri-pause-line ri-lg"></i>
+                  <i className="ri-pause-line text-xl"></i>
                 ) : (
-                  <i className="ri-play-line ri-lg"></i>
+                  <i className="ri-play-line text-xl"></i>
                 )}
               </button>
-              <div className="w-24 bg-slate-700 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full transition-all"
-                  style={{ width: `${progress}%` }}
-                ></div>
+              
+              <div className="hidden sm:flex items-center space-x-3">
+                <span className="text-xs text-gray-400">0:00</span>
+                <div className="w-32 bg-gray-700 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all"
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+                <span className="text-xs text-gray-400">0:30</span>
               </div>
             </div>
           </div>
@@ -361,46 +642,51 @@ function App() {
 
       {/* Error Message */}
       {error && (
-        <div className="sticky top-20 z-30 p-4 bg-red-500/20 border border-red-400/50 text-red-200 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto text-center">
+        <div className="fixed top-20 left-4 right-4 z-30 p-4 bg-red-500/20 border border-red-400/50 text-red-200 backdrop-blur-sm rounded-xl">
+          <div className="text-center flex items-center justify-center gap-2">
+            <i className="ri-error-warning-line"></i>
             {error}
           </div>
         </div>
       )}
 
-      {/* Loading untuk initial data */}
-      {isLoading && Object.keys(artistsWithData).length === 0 ? (
-        <div className="py-16 flex justify-center">
-          <LoadingSpinner />
-        </div>
-      ) : (
-        /* Main Content */
+      {/* Main Content */}
+      {currentView === 'home' && (
         <>
-          {renderArtistsSection(
-            getArtistsByGenreWithData('metal'),
-            'metal',
-            'Metal Artists',
-            'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=9b1b0a4b1b0f4e7e6c1f3a2e6f7a8d2b',
-            'from-slate-900/80'
-          )}
-
-          {renderArtistsSection(
-            getArtistsByGenreWithData('black-metal'),
-            'black-metal',
-            'Black Metal Artists',
-            'https://images.unsplash.com/photo-1505483531331-7a4b1f44a9c5?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=4d7f2e8b9a0b6d5c3e2f1a0b6c7d8e9f',
-            'from-black/70'
-          )}
-
-          {renderArtistsSection(
-            getArtistsByGenreWithData('rock'),
-            'rock',
-            'Rock Artists',
-            'https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=8e7a1b2c3d4e5f67890abcd123456789',
-            'from-slate-900/70'
-          )}
+          <ModernHero />
+          <div ref={exploreRef} className="pt-16">
+            <GenreFilter />
+            {activeGenre === 'all' ? (
+              <>
+                {renderArtistsSection(getArtistsByGenreWithData('metal'), 'metal', 'Metal Artists')}
+                {renderArtistsSection(getArtistsByGenreWithData('black-metal'), 'black-metal', 'Black Metal Artists')}
+                {renderArtistsSection(getArtistsByGenreWithData('rock'), 'rock', 'Rock Artists')}
+              </>
+            ) : (
+              renderArtistsSection(getArtistsByGenreWithData(activeGenre), activeGenre, `${activeGenre.charAt(0).toUpperCase() + activeGenre.slice(1)} Artists`)
+            )}
+          </div>
         </>
       )}
+
+      {currentView === 'explore' && (
+        <div className="pt-20">
+          <GenreFilter />
+          {activeGenre === 'all' ? (
+            <>
+              {renderArtistsSection(getArtistsByGenreWithData('metal'), 'metal', 'Metal Artists')}
+              {renderArtistsSection(getArtistsByGenreWithData('black-metal'), 'black-metal', 'Black Metal Artists')}
+              {renderArtistsSection(getArtistsByGenreWithData('rock'), 'rock', 'Rock Artists')}
+            </>
+          ) : (
+            renderArtistsSection(getArtistsByGenreWithData(activeGenre), activeGenre, `${activeGenre.charAt(0).toUpperCase() + activeGenre.slice(1)} Artists`)
+          )}
+        </div>
+      )}
+
+      {currentView === 'favorites' && <FavoritesView />}
+
+      {currentView === 'albums' && renderAlbumsView()}
 
       {/* Track Modal */}
       <TrackModal
@@ -421,7 +707,10 @@ function App() {
           <LoadingSpinner />
         </div>
       )}
-    </>
+
+      {/* Bottom Padding for Now Playing Bar */}
+      {currentTrack && <div className="h-24"></div>}
+    </div>
   );
 }
 

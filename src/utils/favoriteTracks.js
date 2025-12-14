@@ -99,6 +99,105 @@
       }
     },
 
+    "Korn11": {
+        id: "3RNrq3jvMZxD9ZyoOZbQOD", 
+      genre: "metal",
+      albums: {
+          "POST HUMAN: NeX GEn": {
+            id: "7Cpc5A7zhTKXkUDKnYLRYy", 
+          tracks: [
+            '7HKRWMTErKh56EIBeFcmdf', 
+            '5QQlmUR2fIfrstMT0TMC97', 
+          ]
+        },
+        "Amo": {
+          id: "04mkS7FooK8fRbB626T9NR",
+          tracks: [
+            '3iJxLAi8NQw3e5YGiGVqXj', 
+            '6L89mwZXSOwYl76YXfX13s', // Wonderful Life
+          ]
+        }
+      }
+    },
+
+    "Avanged Sevenfold11": {
+        id: "0nmQIMXWTXfhgOBdNzhGOs", 
+      genre: "metal",
+      albums: {
+          "POST HUMAN: NeX GEn": {
+            id: "7Cpc5A7zhTKXkUDKnYLRYy", 
+          tracks: [
+            '7HKRWMTErKh56EIBeFcmdf', 
+            '5QQlmUR2fIfrstMT0TMC97', 
+          ]
+        },
+        "Amo": {
+          id: "04mkS7FooK8fRbB626T9NR",
+          tracks: [
+            '3iJxLAi8NQw3e5YGiGVqXj', 
+            '6L89mwZXSOwYl76YXfX13s', 
+          ]
+        }
+      }
+    },
+
+    " Bring Me The Horizo11n": {
+        id: "1Ffb6ejR6Fe5IamqA5oRUF", 
+      genre: "metal",
+      albums: {
+          "POST HUMAN: NeX GEn": {
+            id: "7Cpc5A7zhTKXkUDKnYLRYy", 
+          tracks: [
+            '7HKRWMTErKh56EIBeFcmdf', 
+            '5QQlmUR2fIfrstMT0TMC97', 
+          ]
+        },
+        "Amo": {
+          id: "04mkS7FooK8fRbB626T9NR",
+          tracks: [
+            '3iJxLAi8NQw3e5YGiGVqXj', 
+            '6L89mwZXSOwYl76YXfX13s',
+          ]
+        }
+      }
+    },
+
+    "Slipkno11t": {
+      id: "05fG473iIaoy82BF1aGhL8", 
+      genre: "metal",
+      albums: {
+        "We Are Not Your Kind": {
+          
+          id: "7aVKCN8M7aYs2s2NQH3p2e",
+          tracks: [
+            '2GbJ7W88aYYh8GQbsd3wt2', 
+            '6IskveohQRW7jX5Vy49p4U', 
+          ]
+        },
+        "Iowa": {
+          id: "hG1tQ1NfSWKnxCuFSBTmAA",
+          tracks: [
+            '3f9uWeCG0p28v84DqPwtQU', 
+            '0Q7a3K1M7LjjKZZ2cO8wFD',
+          ]
+        }
+      }
+    },
+
+    "Dimmu B11orgir": {
+      id: "6e8ISIsI7UQZPyEorefAhK",
+      genre: "black-metal",
+      albums: {
+        "Death Cult Armageddon": {
+          id: "4vH4syekS3nRm3Y3E0yAww",
+          tracks: [
+            '2eT3MkLxTvUaZiPi0JIND1',
+            '5t5Q7p0G9QBo2iDp0lR0d9', 
+          ]
+        }
+      }
+    },
+
   };
 
   // Helper functions
